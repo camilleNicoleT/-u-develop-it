@@ -3,10 +3,28 @@ const router = express.Router();
 const db = require('../../db/connection');
 const inputCheck = require('../../utils/inputCheck');
 
+// Get all candidates
+router.get('/api/candidates', (req, res) => {
+    const sql = `SELECT candidates.*, parties.name 
+    AS party_name 
+    FROM candidates 
+    LEFT JOIN parties 
+    ON candidates.party_id = parties.id`;
+  
+    db.query(sql, (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({
+        message: 'success',
+        data: rows
+      });
+    });
+  });
 
-
-  // GET a single candidate
-app.get('/candidate/:id', (req, res) => {
+// GET a single candidate
+router.get('/api/candidate/:id', (req, res) => {
     const sql = `SELECT candidates.*, parties.name 
     AS party_name 
     FROM candidates 
@@ -25,29 +43,10 @@ db.query(sql, params, (err, row) => {
             data: row
           });
       });
-})
+});
 
-// Get all candidates
-app.get('/candidates', (req, res) => {
-    const sql = `SELECT candidates.*, parties.name 
-    AS party_name 
-    FROM candidates 
-    LEFT JOIN parties 
-    ON candidates.party_id = parties.id`;
-  
-    db.query(sql, (err, rows) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json({
-        message: 'success',
-        data: rows
-      });
-    });
-  });
 // Create a candidate
-app.post('/candidate', ({ body }, res) => {
+router.post('/api/candidate', ({ body }, res) => {
     const errors = inputCheck(body, 'first_name', 'last_name', 'industry_connected');
     if (errors) {
       res.status(400).json({ error: errors });
@@ -70,16 +69,17 @@ db.query(sql, params, (err, result) => {
   });
 
 // Update a candidate's party
-app.put('/candidate/:id', (req, res) => {
+router.put('/api/candidate/:id', (req, res) => {
     // Candidate is allowed to not have party affiliation
     const errors = inputCheck(req.body, 'party_id');
     if (errors) {
       res.status(400).json({ error: errors });
       return;
     }
+});
 
 // Delete a candidate
-app.delete('/candidate/:id', (req, res) => {
+router.delete('/api/candidate/:id', (req, res) => {
     const sql = `DELETE FROM candidates WHERE id = ?`;
     const params = [req.params.id];
   
@@ -100,4 +100,4 @@ app.delete('/candidate/:id', (req, res) => {
     });
   });
 
-  module.exports = router;
+module.exports = router;
